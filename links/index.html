@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Gerador de links rastreáveis</title>
+<style>body{font-family:system-ui,Arial,sans-serif;max-width:640px;margin:0 auto;padding:16px;color:#0f172a}label{display:block;font-weight:700;font-size:14px;margin:14px 0 4px}input,select{width:100%;font-size:16px;padding:11px;border:1px solid #94a3b8;border-radius:10px}.out{background:#f1f5f9;border-radius:10px;padding:12px;word-break:break-all;font-size:14px;margin-top:16px}button{margin-top:10px;width:100%;padding:13px;border:0;border-radius:10px;background:#1d4ed8;color:#fff;font-size:16px;font-weight:700}small{color:#475569}</style></head><body>
+<h1>Gerador de links rastreáveis</h1>
+<p><small>Crie um link diferente para cada rede (e, se quiser, para cada vídeo). Assim você vê de onde vêm as visitas no Google Analytics e nos eventos do Pixel.</small></p>
+<label for="base">Link do quiz</label><input id="base" inputmode="url">
+<label for="rede">Rede onde vai postar</label>
+<select id="rede"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="youtube">YouTube Shorts</option><option value="kwai">Kwai</option></select>
+<label for="video">Nome ou número do vídeo (ex: v01-parcela)</label><input id="video" placeholder="v01-parcela" autocapitalize="off">
+<label for="camp">Campanha</label><input id="camp" value="organico-nov26" autocapitalize="off">
+<div class="out" id="out"></div><button id="cp" type="button">Copiar link</button>
+<script>
+(function(){var $=function(i){return document.getElementById(i)};
+$('base').value=location.href.replace(/links\/?(\?.*)?$/,'quiz/');
+function slug(v){return (v||'').toLowerCase().replace(/[^a-z0-9\-_]/g,'-').slice(0,40)}
+function g(){var b=$('base').value.trim().split('?')[0];var p=['utm_source='+$('rede').value,'utm_medium=organico','utm_campaign='+slug($('camp').value)];var v=slug($('video').value);if(v)p.push('utm_content='+v);$('out').textContent=b+'?'+p.join('&')}
+['base','rede','video','camp'].forEach(function(i){$(i).addEventListener('input',g)});g();
+$('cp').addEventListener('click',function(){var t=$('out').textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){$('cp').textContent='Copiado!'},function(){var r=document.createRange();r.selectNode($('out'));getSelection().removeAllRanges();getSelection().addRange(r);$('cp').textContent='Selecione e copie'})});
+})();
+</script></body></html>

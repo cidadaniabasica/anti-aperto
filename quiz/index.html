@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico Anti-Aperto | Cidadania Básica</title>
+<meta name="description" content="6 perguntas rápidas para ver onde o seu dinheiro pode estar vazando e qual é o primeiro passo. Gratuito.">
+<meta name="robots" content="noindex">
+<style>
+:root{--azul:#1d4ed8;--azul2:#1e40af;--verde:#059669;--tx:#0f172a;--mut:#475569;--bor:#e2e8f0;--bg:#f8fafc}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:#fff;color:var(--tx);line-height:1.5;font-size:16px}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+.top{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);font-weight:600;margin-bottom:6px}
+.bar{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;width:0;background:var(--azul);transition:width .3s}
+.card{border:1px solid var(--bor);border-radius:16px;padding:22px 18px;box-shadow:0 1px 2px rgba(15,23,42,.05);background:#fff}
+.hide{display:none!important}
+h1{font-size:23px;line-height:1.25;margin:0 0 10px;letter-spacing:-.01em}
+h2{font-size:20px;line-height:1.3;margin:0 0 14px}
+h3{font-size:20px;margin:0 0 8px}
+p{margin:0 0 12px;color:var(--mut)}
+.tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--azul)}
+.pill{display:inline-block;background:#eff6ff;color:var(--azul2);font-size:12px;font-weight:700;border-radius:99px;padding:4px 12px;margin-bottom:12px}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:15px 18px;font-size:16px;font-weight:700;cursor:pointer;background:var(--azul);color:#fff;text-align:center;text-decoration:none;font-family:inherit}
+.btn:hover{background:var(--azul2)}
+.btn:disabled{opacity:.6;cursor:default}
+.btn.verde{background:var(--verde)}
+.btn.verde:hover{background:#047857}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--bor);border-radius:12px;padding:14px;margin-bottom:10px;font-size:15px;font-family:inherit;color:var(--tx);cursor:pointer;line-height:1.45}
+.opt:hover,.opt:focus-visible{border-color:var(--azul);background:#f8fafc;outline:none}
+.opt.sel{border-color:var(--azul);background:#eff6ff}
+.voltar{background:none;border:0;color:var(--mut);font-size:14px;cursor:pointer;padding:6px 4px;font-family:inherit}
+.voltar:hover{color:var(--tx)}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.tres{display:grid;gap:8px;margin:16px 0}
+.tres div{background:var(--bg);border:1px solid var(--bor);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--mut)}
+.tres b{display:block;color:var(--tx)}
+.badge{display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:99px;padding:4px 12px;border:1px solid;margin-bottom:10px}
+.b-alto{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+.b-medio{background:#fefce8;color:#854d0e;border-color:#fde68a}
+.b-base{background:#ecfdf5;color:#065f46;border-color:#a7f3d0}
+.prio{background:var(--bg);border:1px solid var(--bor);border-radius:12px;padding:12px;font-size:14px;font-weight:600;margin:14px 0}
+ul.ins{padding:0;margin:8px 0 0;list-style:none}
+ul.ins li{font-size:14px;color:var(--mut);padding-left:22px;position:relative;margin-bottom:8px}
+ul.ins li:before{content:"✓";position:absolute;left:0;color:var(--verde);font-weight:800}
+label.flbl{display:block;font-size:14px;font-weight:700;margin:12px 0 6px}
+input[type=email]{width:100%;font-size:16px;padding:13px;border:1px solid #94a3b8;border-radius:10px;font-family:inherit}
+input[type=email]:focus{outline:2px solid var(--azul);border-color:var(--azul)}
+.fopt{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--mut);margin:12px 0}
+.fopt input{margin-top:3px;width:18px;height:18px;flex:none}
+.err{color:#b91c1c;font-size:14px;margin:8px 0;font-weight:600}
+.skip{display:block;text-align:center;margin-top:14px;font-size:14px;color:var(--mut);background:none;border:0;cursor:pointer;text-decoration:underline;width:100%;font-family:inherit}
+.oferta{border:2px solid var(--azul);margin-top:18px}
+.preco{background:#0f172a;color:#fff;border-radius:14px;padding:16px;margin:14px 0}
+.preco b{font-size:30px;color:#6ee7b7}
+.preco small{display:block;color:#cbd5e1;font-size:13px}
+.aviso{font-size:12px;color:#64748b;text-align:center;margin-top:14px}
+.refazer{background:none;border:0;color:var(--mut);font-size:13px;cursor:pointer;text-decoration:underline;font-family:inherit}
+</style>
+
+<!-- Registro de funil (sem dados pessoais) -->
+<script>
+(function(){
+  window.saLog = function(){};
+  try{
+    var q = new URLSearchParams(location.search);
+    if (q.get('sa_ignore') === '1') localStorage.setItem('sa_ignore','1');
+    if (localStorage.getItem('sa_ignore') === '1') return;
+    var sid = localStorage.getItem('sa_sid');
+    if (!sid) { sid = Date.now().toString(36) + Math.random().toString(36).slice(2,10); localStorage.setItem('sa_sid', sid); }
+    var u = {}, any = false;
+    ['utm_source','utm_medium','utm_campaign','utm_content'].forEach(function(k){ var v = q.get(k); if (v) { u[k] = v.slice(0,60); any = true; } });
+    if (any) localStorage.setItem('sa_utm', JSON.stringify(u));
+    else { try { u = JSON.parse(localStorage.getItem('sa_utm') || '{}'); } catch(e){ u = {}; } }
+    var feitos = {};
+    var GA_MAP = {input_start:'quiz_start', calc:'quiz_complete', cta_view:'email_gate_view', form_submit:'form_submit', lead:'generate_lead', offer_view:'offer_view', buy_click:'begin_checkout', skip_click:'quiz_skip_email'};
+    var NO_SERVIDOR_PROPRIO = /(^|\.)cidadaniabasica\.com\.br$/.test(location.hostname);
+    window.saLog = function(ev, repetir){
+      if (!repetir && feitos[ev]) return; feitos[ev] = 1;
+      try {
+        // GA4 (so envia se GA_ID estiver preenchido la embaixo)
+        if (window.gtag && GA_MAP[ev]) gtag('event', GA_MAP[ev], {utm_src: u.utm_source || '', utm_cmp: u.utm_campaign || '', utm_ctt: u.utm_content || ''});
+        // Registro proprio: so existe na hospedagem com evento.php
+        if (NO_SERVIDOR_PROPRIO) {
+          var body = JSON.stringify({sid:sid, ev:ev, u:u, p:'quiz'});
+          if (navigator.sendBeacon) navigator.sendBeacon('/semaperto/evento.php', body);
+          else fetch('/semaperto/evento.php', {method:'POST', body:body, keepalive:true});
+        }
+      } catch(e){}
+    };
+    // Parametros de origem para o Pixel
+    window.saUtm = u;
+  }catch(e){}
+})();
+</script>
+<!-- Google Analytics 4: cole o ID (formato G-XXXXXXXXXX) entre as aspas para ativar -->
+<script>
+(function(){
+  var GA_ID = '';
+  if (!GA_ID) return;
+  try { if (localStorage.getItem('sa_ignore') === '1') return; } catch(e){}
+  var s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID; document.head.appendChild(s);
+  window.dataLayer = window.dataLayer || []; window.gtag = function(){ dataLayer.push(arguments); };
+  gtag('js', new Date()); gtag('config', GA_ID);
+})();
+</script>
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1388796735625584');fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1388796735625584&ev=PageView&noscript=1" alt=""/></noscript>
+<!-- End Meta Pixel -->
+</head>
+<body>
+<main class="wrap">
+  <div class="top"><span>Diagnóstico Anti-Aperto</span><span id="pct" aria-live="polite">0%</span></div>
+  <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barra"><i id="barrai"></i></div>
+
+  <!-- INTRO -->
+  <section class="card" id="s-intro">
+    <span class="pill">6 perguntas • cerca de 1 minuto</span>
+    <h1>Por que o dinheiro parece sumir no começo do mês?</h1>
+    <p>Responda 6 perguntas e veja um diagnóstico geral, com os pontos que mais merecem atenção e um primeiro passo prático. Sem planilha complicada.</p>
+    <div class="tres">
+      <div><b>Sem julgamento</b>Aperto financeiro costuma ser falta de método, não de caráter.</div>
+      <div><b>Resultado na hora</b>Você vê onde está o maior ponto de atenção.</div>
+      <div><b>Passo prático</b>Uma ação simples para começar já.</div>
+    </div>
+    <button class="btn" id="b-start" type="button">Começar o diagnóstico</button>
+    <p class="aviso">Conteúdo educativo. Não substitui análise individual do seu contrato ou da sua situação.</p>
+  </section>
+
+  <!-- PERGUNTAS -->
+  <section class="card hide" id="s-q" aria-live="polite">
+    <div class="row"><span class="tag" id="q-tag"></span><button class="voltar" id="b-voltar" type="button">← Voltar</button></div>
+    <h2 id="q-txt" tabindex="-1"></h2>
+    <div id="q-opts"></div>
+  </section>
+
+  <!-- GATE DE E-MAIL -->
+  <section class="card hide" id="s-gate">
+    <span class="pill">Diagnóstico pronto</span>
+    <h2>Seu resultado está pronto</h2>
+    <p>Digite seu e-mail para ver o diagnóstico completo e receber uma cópia. Você também recebe alguns e-mails curtos e gratuitos sobre como comparar propostas de banco e organizar dívidas.</p>
+    <form id="fcap" method="post" action="https://f4e2bd4b.sibforms.com/serve/MUIFAJ05qB4QZPwwWkyPv_MXQMX7kjwmV_D8JpV6ql3-peGjVk8u8NaaldJzTc_8el6fyB8bibTZXR-jP0VauG38jM-4Opd0qzoVVwYkQG9TlzwuDeBituetOugG6YaR4Pg2121G0eEKTkn5HPs3lti0DWOZo80d5bAPNc_8XHHcqZhQz5KhSdjIjyn52d70BreDg98mkYEiSdv0ew==" target="capframe" novalidate>
+      <input type="text" name="email_address_check" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0">
+      <input type="hidden" name="locale" value="pt">
+      <label for="EMAIL" class="flbl">Seu melhor e-mail</label>
+      <input type="email" id="EMAIL" name="EMAIL" inputmode="email" autocomplete="email" autocapitalize="off" placeholder="seuemail@exemplo.com">
+      <label class="fopt"><input type="checkbox" id="OPT_IN" name="OPT_IN" value="1"><span>Concordo em receber e-mails da Cidadania Básica (a cópia do resultado e conteúdo educativo). Posso cancelar quando quiser, pelo link no fim de cada e-mail.</span></label>
+      <div id="ferr" class="err hide" role="alert"></div>
+      <button class="btn" id="fbtn" type="submit">Ver meu diagnóstico</button>
+    </form>
+    <iframe name="capframe" id="capframe" title="envio" tabindex="-1" aria-hidden="true" style="display:none;width:0;height:0;border:0"></iframe>
+    <button class="skip" id="b-skip" type="button">Ver o resultado sem informar e-mail</button>
+  </section>
+
+  <!-- RESULTADO -->
+  <div class="hide" id="s-res">
+    <section class="card">
+      <div class="row"><span class="badge" id="r-badge"></span><button class="refazer" id="b-refazer" type="button">Refazer o teste</button></div>
+      <h2 id="r-head" tabindex="-1"></h2>
+      <p id="r-sum"></p>
+      <div class="prio" id="r-prio"></div>
+      <b style="font-size:14px">O que suas respostas indicam:</b>
+      <ul class="ins" id="r-ins"></ul>
+    </section>
+
+    <section class="card oferta" id="s-oferta">
+      <span class="tag">Próximo passo</span>
+      <h3>O Manual Anti-Aperto</h3>
+      <p>Guia prático, escrito pelo perito contador Leandro Silva, para estancar vazamentos, conferir propostas de acordo e organizar as dívidas em 7 dias. Em linguagem simples, sem promessa milagrosa.</p>
+      <div class="preco"><b>R$ 19,90</b><small>pagamento único • acesso digital imediato</small></div>
+      <a class="btn verde" id="b-buy" href="https://pay.kiwify.com.br/0snXTVk" rel="noopener">Quero o Manual Anti-Aperto</a>
+      <p class="aviso">Material educativo. Os resultados dependem da sua situação e da aplicação do conteúdo; não há garantia de ganho financeiro. O diagnóstico acima é indicativo e não substitui análise individual.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var KEY = 'quiz_anti_aperto_v2';
+
+  var Q = [
+    {tag:'Pergunta 1 de 6 · O ciclo do salário', q:'Quando o dinheiro cai na conta, o que costuma acontecer nos primeiros 10 dias?', o:[
+      {t:'Some quase tudo entre boletos, parcelas e fatura, e fico contando os dias até o próximo mês.', p:3, i:'Quando o salário some logo no começo, vale mapear para onde ele vai: parcelas fixas e juros costumam pesar mais do que parece.'},
+      {t:'Pago o básico, mas qualquer imprevisto me obriga a usar limite ou cartão.', p:2, i:'Sem uma reserva inicial, um imprevisto pequeno tende a virar dívida com juros.'},
+      {t:'Consigo organizar as contas, mas sinto que pago juros ou tarifas demais sem acompanhar de perto.', p:1, i:'Mesmo pagando em dia, juros e tarifas acumulados podem consumir parte da sua sobra no ano.'}]},
+    {tag:'Pergunta 2 de 6 · O cartão de crédito', q:'Qual é a sua relação hoje com a fatura do cartão?', o:[
+      {t:'Pago o mínimo ou parcelo a fatura porque não fecha o valor total.', p:3, i:'Pagar o mínimo ou parcelar a fatura costuma ter custo alto; vale ter um plano para sair disso o quanto antes.'},
+      {t:'Pago o total, mas o cartão está salvo em apps e compras por impulso aparecem.', p:2, i:'Tirar o cartão salvo dos apps por uma semana é um teste simples para ver quanto vaza por impulso.'},
+      {t:'Quase não uso ou controlo bem, mas já perdi dinheiro com juros ou anuidade.', p:1, i:'Conferir tarifas e a fatura com regularidade evita surpresas.'}]},
+    {tag:'Pergunta 3 de 6 · Dívidas e acordos', q:'Se você tem dívidas em atraso ou recebe ofertas de acordo, o que costuma fazer?', o:[
+      {t:'Aceito o que der para limpar o nome logo, ou fico em dúvida se vale parcelar em muitas vezes.', p:3, i:'Parcelar em muitas vezes sem olhar o total a pagar pode fazer a dívida custar bem mais que o valor original.'},
+      {t:'Tenho dívidas antigas, mas não sei conferir datas, prazos ou o que pedir por escrito.', p:2, i:'Antes de fechar acordo, confira a data da dívida e peça a proposta por escrito, com o valor total e o número de parcelas.'},
+      {t:'Não tenho dívida atrasada, mas tenho financiamento ou parcelas que gostaria de reduzir.', p:1, i:'Entender a diferença entre reduzir prazo e reduzir parcela ajuda a decidir como usar uma sobra.'}]},
+    {tag:'Pergunta 4 de 6 · Reserva de emergência', q:'Se surgisse uma despesa de R$ 1.000 amanhã, o que aconteceria?', o:[
+      {t:'Eu não teria esse valor guardado; precisaria de empréstimo, cartão ou ajuda.', p:3, i:'Começar com metas pequenas, como R$ 100 e depois R$ 300, cria o hábito sem sufocar o mês.'},
+      {t:'Tenho muito pouco guardado e fico com receio de gastar tudo numa emergência.', p:2, i:'Uma caixinha separada, mesmo pequena, já reduz a chance de recorrer a crédito caro.'},
+      {t:'Já tenho uma reserva inicial, mas quero protegê-la e usar as sobras com cuidado.', p:1, i:'Preservar a reserva antes de amortizar dívidas ou assumir novas parcelas é uma regra de segurança.'}]},
+    {tag:'Pergunta 5 de 6 · Método de controle', q:'Por que você não mantém uma planilha financeira por mais de uma semana?', o:[
+      {t:'Porque é chato e demorado anotar cada gasto.', p:2, i:'Planilha detalhada demais costuma ser abandonada. Um controle simples, de 3 colunas, já mostra o essencial.'},
+      {t:'Porque olhar os números quando está tudo bagunçado me deixa ansioso.', p:3, i:'Olhar os números com calma e sem culpa é o primeiro passo; começar pequeno ajuda.'},
+      {t:'Porque eu só queria uma ferramenta simples que fizesse as contas por mim.', p:1, i:'Calculadoras prontas poupam tempo e evitam erro de conta.'}]},
+    {tag:'Pergunta 6 de 6 · Seu objetivo agora', q:'Qual seria o maior alívio para você nos próximos 7 dias?', o:[
+      {t:'Estancar o vazamento e parar a bola de neve de cartão e juros.', p:3, i:'Um plano curto, focado em cortar os maiores ralos primeiro, costuma dar alívio mais rápido.'},
+      {t:'Saber o que fazer com dívidas, acordos ou parcelas sem cair em cilada.', p:2, i:'Ter um roteiro de perguntas para o banco ajuda a evitar decisões precipitadas.'},
+      {t:'Montar minha primeira proteção contra imprevistos e organizar o mês.', p:1, i:'Simplicidade e constância costumam funcionar melhor do que perfeição.'}]}
+  ];
+
+  var st = {i:0, a:{}, unlocked:false};
+  try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.a) { st.a = s.a; st.unlocked = !!s.unlocked; } } catch(e){}
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify({a:st.a, unlocked:st.unlocked})); } catch(e){} }
+
+  function px(tipo, nome){
+    if (!window.fbq) return;
+    try { var u = window.saUtm || {}; var par = {fonte: u.utm_source || 'direto', campanha: u.utm_campaign || '', conteudo: u.utm_content || ''}; fbq(tipo, nome, par); } catch(e){}
+  }
+  function show(id){
+    ['s-intro','s-q','s-gate','s-res'].forEach(function(x){ $(x).classList.add('hide'); });
+    $(id).classList.remove('hide');
+  }
+  function progresso(p){
+    $('pct').textContent = p + '%'; $('barrai').style.width = p + '%'; $('barra').setAttribute('aria-valuenow', p);
+  }
+  function foco(el){ try { el.focus({preventScroll:false}); } catch(e){} window.scrollTo(0,0); }
+
+  function renderQ(){
+    var q = Q[st.i];
+    $('q-tag').textContent = q.tag;
+    $('q-txt').textContent = q.q;
+    var box = $('q-opts'); box.innerHTML = '';
+    q.o.forEach(function(op, idx){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt' + (st.a[st.i] === idx ? ' sel' : ''); b.textContent = op.t;
+      b.addEventListener('click', function(){ responder(idx); });
+      box.appendChild(b);
+    });
+    progresso(Math.round((st.i / Q.length) * 100));
+    show('s-q'); foco($('q-txt'));
+  }
+  function responder(idx){
+    st.a[st.i] = idx; save();
+    if (st.i < Q.length - 1) { st.i++; renderQ(); }
+    else { concluir(); }
+  }
+  function total(){ var t = 0; Q.forEach(function(q, n){ if (st.a[n] != null) t += q.o[st.a[n]].p; }); return t; }
+  function concluir(){
+    window.saLog('calc');
+    px('trackCustom','QuizConcluido');
+    progresso(100);
+    if (st.unlocked) return resultado();
+    show('s-gate'); window.saLog('cta_view'); foco($('s-gate').querySelector('h2'));
+  }
+
+  function diag(t){
+    if (t >= 14) return {b:'Atenção alta', c:'b-alto', h:'Seu orçamento parece estar sob pressão, e há pontos que merecem atenção já.', s:'Pelas suas respostas, o mês aperta cedo e há pouca folga para imprevistos. Isso é comum e tem saída: o caminho costuma começar por enxergar para onde o dinheiro vai, conter os maiores custos e conferir qualquer proposta antes de aceitar.', p:'Primeiro passo: anotar as parcelas e juros fixos do mês e conferir o custo total de qualquer acordo antes de fechar.'};
+    if (t >= 9) return {b:'Atenção média', c:'b-medio', h:'Você segura as pontas, mas a margem é curta.', s:'Pelas suas respostas, o orçamento fecha, porém um imprevisto ou um acordo mal calculado pode apertar. Um plano curto e alguns números claros costumam devolver o controle antes que vire problema.', p:'Primeiro passo: montar uma meta inicial de reserva (R$ 100 a R$ 500) e comparar o custo total das parcelas que você já paga.'};
+    return {b:'Base boa, com ajustes', c:'b-base', h:'Você tem uma base boa e pode melhorar com ajustes simples.', s:'Pelas suas respostas, a situação está mais organizada. Ainda há ganho em conferir juros e tarifas, proteger a reserva e decidir com números, não no impulso.', p:'Primeiro passo: revisar tarifas e juros que você paga hoje e definir como usar as sobras sem desproteger a reserva.'};
+  }
+  function resultado(){
+    var d = diag(total());
+    $('r-badge').textContent = d.b; $('r-badge').className = 'badge ' + d.c;
+    $('r-head').textContent = d.h; $('r-sum').textContent = d.s; $('r-prio').textContent = d.p;
+    var ul = $('r-ins'); ul.innerHTML = '';
+    [0,1,2].forEach(function(n){
+      if (st.a[n] == null) return;
+      var li = document.createElement('li'); li.textContent = Q[n].o[st.a[n]].i; ul.appendChild(li);
+    });
+    show('s-res'); window.saLog('offer_view');
+    px('trackCustom','QuizResultado');
+    foco($('r-head'));
+  }
+
+  // Eventos
+  $('b-start').addEventListener('click', function(){ st.i = 0; st.a = {}; window.saLog('input_start'); px('trackCustom','QuizIniciado'); renderQ(); });
+  $('b-voltar').addEventListener('click', function(){
+    if (st.i > 0) { st.i--; renderQ(); } else { progresso(0); show('s-intro'); }
+  });
+  $('b-refazer').addEventListener('click', function(){ st.i = 0; st.a = {}; save(); renderQ(); });
+  $('b-skip').addEventListener('click', function(){ window.saLog('skip_click'); st.unlocked = true; save(); resultado(); });
+  $('b-buy').addEventListener('click', function(){
+    window.saLog('buy_click');
+    px('track','InitiateCheckout');
+  });
+
+  // Formulário (Brevo, via iframe oculto; segue para o resultado na mesma página)
+  (function(){
+    var f = $('fcap'), enviando = false;
+    function ferro(m){ var e = $('ferr'); e.textContent = m; e.className = 'err'; }
+    f.addEventListener('submit', function(ev){
+      var em = $('EMAIL').value.trim();
+      $('ferr').className = 'err hide';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { ev.preventDefault(); return ferro('Confira o e-mail. Exemplo: nome@exemplo.com'); }
+      if (!$('OPT_IN').checked) { ev.preventDefault(); return ferro('Marque a caixa para autorizar o envio dos e-mails.'); }
+      if (enviando) { ev.preventDefault(); return; }
+      enviando = true; $('fbtn').disabled = true; $('fbtn').textContent = 'Enviando...';
+      window.saLog('form_submit');
+      var ir = function(){
+        if (ir.feito) return; ir.feito = true;
+        px('track','Lead');
+        window.saLog('lead');
+        st.unlocked = true; save(); resultado();
+      };
+      $('capframe').addEventListener('load', function(){ setTimeout(ir, 300); });
+      setTimeout(ir, 8000);
+    });
+  })();
+
+  window.saLog('view');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Central Anti-Aperto — Painel Prático Interativo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0",
+        "recharts": "https://esm.sh/recharts@2.12.2?deps=react@18.2.0,react-dom@18.2.0",
+        "clsx": "https://esm.sh/clsx@2.0.0",
+        "tailwind-merge": "https://esm.sh/tailwind-merge@2.2.1"
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #ffffff;
+      color: #0f172a;
+      margin: 0;
+      padding: 0;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-white text-slate-900 antialiased">
+  <div id="root" class="w-full"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useEffect, useMemo } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import {
+      ShieldCheck,
+      Calculator,
+      Scale,
+      FileText,
+      CheckCircle2,
+      Circle,
+      AlertTriangle,
+      TrendingDown,
+      Wallet,
+      Copy,
+      Check,
+      RotateCcw,
+      PiggyBank,
+      ArrowRight,
+      Sparkles,
+      Info,
+      CreditCard,
+      CalendarClock,
+      Flame
+    } from 'lucide-react';
+    import {
+      BarChart,
+      Bar,
+      XAxis,
+      YAxis,
+      Tooltip,
+      ResponsiveContainer,
+      Cell
+    } from 'recharts';
+    import { clsx } from 'clsx';
+    import { twMerge } from 'tailwind-merge';
+
+    function cn(...inputs) {
+      return twMerge(clsx(inputs));
+    }
+
+    const formatBRL = (value) => {
+      const num = Number(value) || 0;
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(num);
+    };
+
+    const STORAGE_KEY = 'central_anti_aperto_v3_1';
+
+    const DEFAULT_STATE = {
+      activeTab: 'raiox',
+      jurosCartao: '',
+      jurosCheque: '',
+      jurosMultas: '',
+      jurosTarifas: '',
+      rendaLiquida: '',
+      gastoEssencial: '',
+      gastoRalo: '',
+      dividaOriginal: '',
+      dividaMesesAtraso: '',
+      propostaParcelas: '',
+      propostaValorParcela: '',
+      dividaTipo: 'cartao',
+      finValorParcela: '850',
+      finParcelasRestantes: '36',
+      finTaxaMensal: '2.0',
+      finValorExtra: '5500',
+      cartaNome: '',
+      cartaContrato: '',
+      cartaDataContrato: '',
+      cartaCidade: '',
+      cartaTipo: 'parcial',
+      checklist7Dias: [false, false, false, false, false, false, false],
+      reservaAtual: '0',
+      reservaMetaEscolhida: 3000
+    };
+
+    const CHECKLIST_ITEMS = [
+      {
+        dia: 'DIA 1',
+        titulo: 'Fazer o Placar dos Juros',
+        desc: 'Some juros, multas e tarifas dos últimos 3 meses na Aba 1 para enxergar o "aluguel do dinheiro".'
+      },
+      {
+        dia: 'DIA 2',
+        titulo: 'Fazer o Raio-X das 3 Colunas',
+        desc: 'Separe Entrou, Essencial e Ralo/Parcelas. Descubra se há sobra ou necessidade de estabilizar.'
+      },
+      {
+        dia: 'DIA 3',
+        titulo: 'Operação Cartão Desligado',
+        desc: 'Liste os cartões, remova de apps/carteiras digitais e pare de pagar apenas o mínimo.'
+      },
+      {
+        dia: 'DIA 4',
+        titulo: 'Checar Datas e Prescrição (5 anos)',
+        desc: 'Anote o vencimento original de cada dívida atrasada na Aba 2 antes de aceitar qualquer acordo.'
+      },
+      {
+        dia: 'DIA 5',
+        titulo: 'Pedir Contrato, Extrato e CET',
+        desc: 'Exija o Custo Efetivo Total por escrito e audite propostas antes de fechar negócio.'
+      },
+      {
+        dia: 'DIA 6',
+        titulo: 'Abrir Caixinha da 1ª Proteção',
+        desc: 'Se houve sobra no Raio-X, separe uma conta sem cartão e transfira sua primeira meta (ex: R$ 30 a R$ 100).'
+      },
+      {
+        dia: 'DIA 7',
+        titulo: 'Definir 1 Passo de Renda Extra ou Ajuste',
+        desc: 'Escolha uma ação realista que caiba na sua rotina sem comprometer saúde ou descanso.'
+      }
+    ];
+
+    function App() {
+      const [data, setData] = useState(() => {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            return { ...DEFAULT_STATE, ...JSON.parse(saved) };
+          }
+        } catch (e) {
+          console.error('Erro ao ler dados salvos:', e);
+        }
+        return DEFAULT_STATE;
+      });
+
+      const [copiedCarta, setCopiedCarta] = useState(false);
+      const [resetConfirm, setResetConfirm] = useState(false);
+
+      useEffect(() => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+          console.error('Erro ao salvar dados:', e);
+        }
+      }, [data]);
+
+      const updateField = (field, value) => {
+        setData((prev) => ({ ...prev, [field]: value }));
+      };
+
+      const handleResetAll = () => {
+        setData(DEFAULT_STATE);
+        localStorage.removeItem(STORAGE_KEY);
+        setResetConfirm(false);
+      };
+
+      const calcAba1 = useMemo(() => {
+        const j3m =
+          (parseFloat(data.jurosCartao) || 0) +
+          (parseFloat(data.jurosCheque) || 0) +
+          (parseFloat(data.jurosMultas) || 0) +
+          (parseFloat(data.jurosTarifas) || 0);
+        const j1ano = j3m * 4;
+
+        const entrou = parseFloat(data.rendaLiquida) || 0;
+        const essencial = parseFloat(data.gastoEssencial) || 0;
+        const ralo = parseFloat(data.gastoRalo) || 0;
+
+        const saldoPosEssencial = entrou - essencial;
+        const sobraFinal = entrou - essencial - ralo;
+
+        let status = 'neutro';
+        if (entrou > 0) {
+          if (saldoPosEssencial < 0) {
+            status = 'critico';
+          } else if (sobraFinal < 0) {
+            status = 'alerta';
+          } else {
+            status = 'saudavel';
+          }
+        }
+
+        const chartData = [
+          { name: 'Entrou', valor: entrou, fill: '#10b981' },
+          { name: 'Essencial', valor: essencial, fill: '#4f46e5' },
+          { name: 'Ralo/Parcelas', valor: ralo, fill: '#f59e0b' }
+        ];
+
+        return {
+          j3m,
+          j1ano,
+          entrou,
+          essencial,
+          ralo,
+          saldoPosEssencial,
+          sobraFinal,
+          status,
+          chartData
+        };
+      }, [
+        data.jurosCartao,
+        data.jurosCheque,
+        data.jurosMultas,
+        data.jurosTarifas,
+        data.rendaLiquida,
+        data.gastoEssencial,
+        data.gastoRalo
+      ]);
+
+      const calcAba2 = useMemo(() => {
+        const orig = parseFloat(data.dividaOriginal) || 0;
+        const mesesAtraso = parseInt(data.dividaMesesAtraso, 10) || 0;
+        const nParc = parseInt(data.propostaParcelas, 10) || 0;
+        const vParc = parseFloat(data.propostaValorParcela) || 0;
+
+        const totalProposta = nParc * vParc;
+        const multiplicador = orig > 0 && totalProposta > 0 ? totalProposta / orig : 0;
+        const jurosEmbutidos = totalProposta > orig ? totalProposta - orig : 0;
+
+        let taxaMensalAprox = 0;
+        if (orig > 0 && nParc > 1 && vParc > 0 && totalProposta > orig) {
+          let r = 0.05;
+          for (let i = 0; i < 40; i++) {
+            const pow = Math.pow(1 + r, -nParc);
+            const f = vParc * ((1 - pow) / r) - orig;
+            const df =
+              vParc *
+              ((r * nParc * Math.pow(1 + r, -nParc - 1) - (1 - pow)) / (r * r));
+            if (Math.abs(df) < 1e-9) break;
+            const nextR = r - f / df;
+            if (nextR <= 0) r = r / 2;
+            else r = nextR;
+          }
+          taxaMensalAprox = r * 100;
+        }
+
+        const prescrita = mesesAtraso >= 60;
+        const fereTetoCartao =
+          data.dividaTipo === 'cartao' && orig > 0 && totalProposta > orig * 2;
+
+        return {
+          orig,
+          mesesAtraso,
+          nParc,
+          vParc,
+          totalProposta,
+          multiplicador,
+          jurosEmbutidos,
+          taxaMensalAprox,
+          prescrita,
+          fereTetoCartao
+        };
+      }, [
+        data.dividaOriginal,
+        data.dividaMesesAtraso,
+        data.propostaParcelas,
+        data.propostaValorParcela,
+        data.dividaTipo
+      ]);
+
+      const calcAba3 = useMemo(() => {
+        const pmt = parseFloat(data.finValorParcela) || 0;
+        const n = parseInt(data.finParcelasRestantes, 10) || 0;
+        const i = (parseFloat(data.finTaxaMensal) || 0) / 100;
+        const extra = parseFloat(data.finValorExtra) || 0;
+
+        const totalSeguirPagando = pmt * n;
+
+        let saldoDevedor = 0;
+        if (i > 0 && n > 0) {
+          saldoDevedor = pmt * ((1 - Math.pow(1 + i, -n)) / i);
+        } else {
+          saldoDevedor = totalSeguirPagando;
+        }
+
+        const jurosFuturosEmbutidos = Math.max(0, totalSeguirPagando - saldoDevedor);
+        const extraValido = Math.min(extra, saldoDevedor);
+        const novoSaldo = Math.max(0, saldoDevedor - extraValido);
+
+        let novoPrazo = 0;
+        if (novoSaldo > 0 && pmt > 0) {
+          if (i > 0 && novoSaldo * i < pmt) {
+            novoPrazo = Math.ceil(
+              -Math.log(1 - (novoSaldo * i) / pmt) / Math.log(1 + i)
+            );
+          } else if (i === 0) {
+            novoPrazo = Math.ceil(novoSaldo / pmt);
+          } else {
+            novoPrazo = n;
+          }
+        }
+        const totalReduzindoPrazo = extraValido + pmt * novoPrazo;
+        const economiaPrazo = Math.max(0, totalSeguirPagando - totalReduzindoPrazo);
+        const mesesEliminados = Math.max(0, n - novoPrazo);
+
+        let novaParcela = 0;
+        if (novoSaldo > 0 && n > 0) {
+          if (i > 0) {
+            novaParcela = (novoSaldo * i) / (1 - Math.pow(1 + i, -n));
+          } else {
+            novaParcela = novoSaldo / n;
+          }
+        }
+        const totalReduzindoParcela = extraValido + novaParcela * n;
+        const economiaParcela = Math.max(
+          0,
+          totalSeguirPagando - totalReduzindoParcela
+        );
+        const alivioMensal = Math.max(0, pmt - novaParcela);
+
+        return {
+          pmt,
+          n,
+          totalSeguirPagando,
+          saldoDevedor,
+          jurosFuturosEmbutidos,
+          extraValido,
+          novoPrazo,
+          mesesEliminados,
+          totalReduzindoPrazo,
+          economiaPrazo,
+          novaParcela,
+          alivioMensal,
+          totalReduzindoParcela,
+          economiaParcela
+        };
+      }, [
+        data.finValorParcela,
+        data.finParcelasRestantes,
+        data.finTaxaMensal,
+        data.finValorExtra
+      ]);
+
+      const textoCartaBanco = useMemo(() => {
+        const hoje = new Date().toLocaleDateString('pt-BR');
+        const nome = data.cartaNome.trim() || '[NOME COMPLETO]';
+        const cpf = '[CPF - preencha na versão impressa/enviada]';
+        const contrato = data.cartaContrato.trim() || '[NÚMERO DO CONTRATO]';
+        const dataC = data.cartaDataContrato.trim() || '[DATA DO CONTRATO]';
+        const cidade = data.cartaCidade.trim() || '[CIDADE]';
+        const modalidade =
+          data.cartaTipo === 'total'
+            ? 'total'
+            : `parcial no valor de ${formatBRL(data.finValorExtra || 0)}`;
+
+        return `Assunto: Solicitação de demonstrativo para liquidação antecipada
+
+Eu, ${nome}, CPF ${cpf}, titular do contrato nº ${contrato}, firmado em ${dataC}, solicito, por escrito, o demonstrativo para liquidação antecipada ${modalidade}, com base no art. 52, §2º do Código de Defesa do Consumidor e na regulamentação do Conselho Monetário Nacional sobre liquidação antecipada (Resolução CMN nº 3.516/2007), contendo as seguintes informações:
+
+1. Número e valor das parcelas pagas, em aberto e a vencer;
+2. Saldo devedor na data de hoje e data de validade do cálculo;
+3. Taxa de juros do contrato e taxa utilizada para descontar as parcelas futuras;
+4. Valor dos juros e demais acréscimos abatidos proporcionalmente;
+5. Tarifas, IOF, seguros ou outros encargos incluídos, com a respectiva base de cobrança;
+6. Em caso de pagamento parcial, simulação comparativa com redução do prazo e com redução da prestação, informando o novo prazo, a nova prestação e o Custo Efetivo Total (CET);
+7. Procedimento e prazo para a baixa de garantias (quando houver) e emissão de comprovante de quitação.
+
+Peço resposta por escrito, com número de protocolo.
+
+${cidade}, ${hoje}.
+${nome}`;
+      }, [
+        data.cartaNome,
+        data.cartaContrato,
+        data.cartaDataContrato,
+        data.cartaCidade,
+        data.cartaTipo,
+        data.finValorExtra
+      ]);
+
+      const handleCopyCarta = () => {
+        const textArea = document.createElement('textarea');
+        textArea.value = textoCartaBanco;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          setCopiedCarta(true);
+          setTimeout(() => setCopiedCarta(false), 2500);
+        } catch (err) {
+          console.error('Falha ao copiar texto:', err);
+        }
+        document.body.removeChild(textArea);
+      };
+
+      const checklistConcluidos = data.checklist7Dias.filter(Boolean).length;
+      const checklistPct = Math.round((checklistConcluidos / 7) * 100);
+
+      const toggleChecklistItem = (index) => {
+        const updated = [...data.checklist7Dias];
+        updated[index] = !updated[index];
+        updateField('checklist7Dias', updated);
+      };
+
+      const reservaAtualNum = parseFloat(data.reservaAtual) || 0;
+      const reservaPct = Math.min(
+        100,
+        Math.round((reservaAtualNum / (data.reservaMetaEscolhida || 3000)) * 100)
+      );
+
+      const addReservaValor = (valorAdd) => {
+        const novo = Math.max(0, reservaAtualNum + valorAdd);
+        updateField('reservaAtual', String(novo));
+      };
+
+      return (
+        <div className="w-full max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 bg-white text-slate-900">
+          <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-5 border-b border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm shrink-0">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">
+                    Central Anti-Aperto
+                  </h1>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Salvo automaticamente
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  Painel prático baseado no método do perito contador Leandro Silva
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              {!resetConfirm ? (
+                <button
+                  type="button"
+                  onClick={() => setResetConfirm(true)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Limpar dados
+                </button>
+              ) : (
+                <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-2.5 py-1.5 rounded-lg">
+                  <span className="text-xs font-medium text-rose-700">Zerar tudo?</span>
+                  <button
+                    type="button"
+                    onClick={handleResetAll}
+                    className="text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 px-2 py-0.5 rounded"
+                  >
+                    Sim
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setResetConfirm(false)}
+                    className="text-xs font-medium text-slate-600 hover:text-slate-900 px-1.5 py-0.5"
+                  >
+                    Não
+                  </button>
+                </div>
+              )}
+            </div>
+          </header>
+
+          <nav
+            aria-label="Ferramentas do Manual Anti-Aperto"
+            className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-5 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/80"
+          >
+            <button
+              type="button"
+              onClick={() => updateField('activeTab', 'raiox')}
+              className={cn(
+                'flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200',
+                data.activeTab === 'raiox'
+                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              )}
+            >
+              <Calculator className="w-4 h-4 shrink-0" />
+              <span>1. Raio-X & Juros</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => updateField('activeTab', 'auditor')}
+              className={cn(
+                'flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200',
+                data.activeTab === 'auditor'
+                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              )}
+            >
+              <Scale className="w-4 h-4 shrink-0" />
+              <span>2. Limpa-Nome</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => updateField('activeTab', 'amortizar')}
+              className={cn(
+                'flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200',
+                data.activeTab === 'amortizar'
+                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              )}
+            >
+              <TrendingDown className="w-4 h-4 shrink-0" />
+              <span>3. Amortizar & Carta</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => updateField('activeTab', 'plano7')}
+              className={cn(
+                'flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 relative',
+                data.activeTab === 'plano7'
+                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              )}
+            >
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>4. Plano 7 Dias</span>
+              {checklistConcluidos > 0 && (
+                <span className="ml-0.5 text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500 text-white">
+                  {checklistConcluidos}/7
+                </span>
+              )}
+            </button>
+          </nav>
+
+          {data.activeTab === 'raiox' && (
+            <div className="space-y-6 animate-fade-in">
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                      Módulo 1 • O "Aluguel do Dinheiro"
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                      Placar dos Juros (Últimos 3 Meses)
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      Olhe seus extratos dos últimos 90 dias e digite quanto foi só para juros, multas e tarifas.
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <Flame className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Juros do cartão (rotativo / parcelamento fatura)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={data.jurosCartao}
+                        onChange={(e) => updateField('jurosCartao', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Cheque especial e limite da conta
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={data.jurosCheque}
+                        onChange={(e) => updateField('jurosCheque', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Multas e juros de boletos atrasados
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={data.jurosMultas}
+                        onChange={(e) => updateField('jurosMultas', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Tarifas bancárias, anuidade e seguros embutidos
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={data.jurosTarifas}
+                        onChange={(e) => updateField('jurosTarifas', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                  <div className="flex items-center justify-between sm:block">
+                    <span className="text-xs font-medium text-slate-500">
+                      Desperdício nos últimos 3 meses:
+                    </span>
+                    <p className="text-lg sm:text-xl font-extrabold text-slate-900">
+                      {formatBRL(calcAba1.j3m)}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between sm:block sm:border-l sm:border-slate-200 sm:pl-4">
+                    <span className="text-xs font-medium text-slate-500">
+                      Projeção perdida em 1 ano (x4):
+                    </span>
+                    <p className="text-lg sm:text-xl font-extrabold text-rose-600">
+                      {formatBRL(calcAba1.j1ano)}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                      Módulo 2 • Sem Planilha Complicada
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                      O Raio-X das 3 Colunas (Mensal)
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      Lembre-se: limite de banco ou cartão não é renda, é dívida pré-aprovada.
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Wallet className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/80">
+                    <label className="block text-xs font-bold text-emerald-900 mb-1">
+                      1. ENTROU (Dinheiro Real)
+                    </label>
+                    <p className="text-[11px] text-emerald-700 mb-2">
+                      Salário líquido, bicos, pensão, vendas.
+                    </p>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={data.rendaLiquida}
+                        onChange={(e) => updateField('rendaLiquida', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-sm font-semibold bg-white rounded-lg border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-indigo-50/50 border border-indigo-200/80">
+                    <label className="block text-xs font-bold text-indigo-900 mb-1">
+                      2. ESSENCIAL (Sobrevivência)
+                    </label>
+                    <p className="text-[11px] text-indigo-700 mb-2">
+                      Moradia, água, luz, comida básica, remédios.
+                    </p>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-indigo-600">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={data.gastoEssencial}
+                        onChange={(e) => updateField('gastoEssencial', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-sm font-semibold bg-white rounded-lg border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200/80">
+                    <label className="block text-xs font-bold text-amber-900 mb-1">
+                      3. RALO E PARCELAS
+                    </label>
+                    <p className="text-[11px] text-amber-700 mb-2">
+                      Delivery, assinaturas, parcelas e compras extras.
+                    </p>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={data.gastoRalo}
+                        onChange={(e) => updateField('gastoRalo', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-sm font-semibold bg-white rounded-lg border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {calcAba1.entrou > 0 && (
+                  <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div className="h-44 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={calcAba1.chartData}
+                          margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+                        >
+                          <XAxis
+                            dataKey="name"
+                            tick={{ fontSize: 12, fill: '#475569' }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis hide />
+                          <Tooltip
+                            formatter={(val) => formatBRL(val)}
+                            contentStyle={{
+                              borderRadius: '12px',
+                              border: '1px solid #e2e8f0',
+                              fontSize: '12px'
+                            }}
+                          />
+                          <Bar dataKey="valor" radius={[8, 8, 0, 0]} maxBarSize={52}>
+                            {calcAba1.chartData.map((entry, idx) => (
+                              <Cell key={idx} fill={entry.fill} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="space-y-3">
+                      {calcAba1.status === 'critico' && (
+                        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
+                          <div className="flex items-center gap-2 font-bold text-sm mb-1">
+                            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                            <span>Modo Estabilização Urgente</span>
+                          </div>
+                          <p className="text-xs leading-relaxed text-rose-800">
+                            Sua conta <strong>Entrou menos Essencial</strong> deu{' '}
+                            <strong>{formatBRL(calcAba1.saldoPosEssencial)}</strong>. Não tente poupar nem fazer acordos que não cabem no bolso agora. Priorize moradia, comida, luz e remédios, e negocie o resto com calma.
+                          </p>
+                        </div>
+                      )}
+
+                      {calcAba1.status === 'alerta' && (
+                        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                          <div className="flex items-center gap-2 font-bold text-sm mb-1">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span>Atenção: O Ralo está engolindo sua sobra</span>
+                          </div>
+                          <p className="text-xs leading-relaxed text-amber-800">
+                            Após o essencial, sobram{' '}
+                            <strong>{formatBRL(calcAba1.saldoPosEssencial)}</strong>, mas o bloco de Ralo/Parcelas consome{' '}
+                            <strong>{formatBRL(calcAba1.ralo)}</strong> (déficit de{' '}
+                            <strong>{formatBRL(Math.abs(calcAba1.sobraFinal))}</strong>). Corte supérfluos hoje e ative a Operação Cartão Desligado.
+                          </p>
+                        </div>
+                      )}
+
+                      {calcAba1.status === 'saudavel' && (
+                        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                          <div className="flex items-center gap-2 font-bold text-sm mb-1">
+                            <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>Munição Real Identificada!</span>
+                          </div>
+                          <p className="text-xs leading-relaxed text-emerald-800">
+                            Você tem <strong>{formatBRL(calcAba1.sobraFinal)}/mês</strong> de munição real. Use esse valor para atacar dívidas caras (Aba 2) ou alimentar sua 1ª Proteção (Aba 4).
+                          </p>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => updateField('activeTab', 'plano7')}
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-95"
+                      >
+                        <span>Ir para a Missão 7 Dias & Reserva</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+
+          {data.activeTab === 'auditor' && (
+            <div className="space-y-6 animate-fade-in">
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                      Módulos 3 e 4 • Negociação com Cabeça Fria
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                      Auditor de Propostas & Regra dos 5 Anos
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      Nunca aceite um acordo só porque "a parcela cabe no bolso". Teste a proposta antes de assinar.
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <Scale className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Qual é a origem desta dívida?
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'cartao', label: 'Cartão de Crédito (Rotativo/Fatura)' },
+                      { id: 'emprestimo', label: 'Empréstimo / Financiamento' },
+                      { id: 'boleto', label: 'Boleto / Crediário / Outros' }
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => updateField('dividaTipo', item.id)}
+                        className={cn(
+                          'py-2.5 px-3 rounded-xl text-xs font-semibold border text-left transition-all',
+                          data.dividaTipo === item.id
+                            ? 'bg-indigo-50 border-indigo-500 text-indigo-800'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        )}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Valor original da dívida (sem a bola de neve)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Ex: 2000"
+                        value={data.dividaOriginal}
+                        onChange={(e) => updateField('dividaOriginal', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Há quantos meses venceu? (60 meses = 5 anos)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Ex: 18"
+                      value={data.dividaMesesAtraso}
+                      onChange={(e) => updateField('dividaMesesAtraso', e.target.value)}
+                      className="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Quantidade de parcelas da proposta
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Ex: 48"
+                      value={data.propostaParcelas}
+                      onChange={(e) => updateField('propostaParcelas', e.target.value)}
+                      className="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Valor de cada parcela oferecida
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Ex: 150"
+                        value={data.propostaValorParcela}
+                        onChange={(e) =>
+                          updateField('propostaValorParcela', e.target.value)
+                        }
+                        className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-3">
+                  {calcAba2.prescrita && (
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-950">
+                      <div className="flex items-center gap-2 font-bold text-sm text-amber-800 mb-1">
+                        <CalendarClock className="w-4 h-4 shrink-0" />
+                        <span>PONTO DE ATENÇÃO: PRAZO DA DÍVIDA (60+ MESES)</span>
+                      </div>
+                      <p className="text-xs leading-relaxed">
+                        Dívidas vencidas há mais de 5 anos <strong>podem</strong> estar prescritas (Código Civil, art. 206, §5º, I), e a negativação tem prazo máximo de 5 anos (Súmula 323 do STJ). Isso depende do tipo de dívida, da data do vencimento e de eventuais interrupções do prazo.{' '}
+                        <strong>Cuidado:</strong> assinar um novo acordo ou reconhecer a dívida pode reiniciar a contagem. Confirme com um advogado ou a Defensoria antes de assinar.
+                      </p>
+                    </div>
+                  )}
+
+                  {calcAba2.fereTetoCartao && (
+                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-950">
+                      <div className="flex items-center gap-2 font-bold text-sm text-rose-800 mb-1">
+                        <CreditCard className="w-4 h-4 shrink-0" />
+                        <span>CONFIRA O TETO DE JUROS DO CARTÃO (LEI 14.690/2023)</span>
+                      </div>
+                      <p className="text-xs leading-relaxed">
+                        A regra do teto de juros do cartão (Lei 14.690/2023) limita juros e encargos do rotativo e do parcelamento da fatura a <strong>100% do valor original da dívida</strong>, com exceções. O total desta proposta passa do dobro do valor informado, o que <strong>pode</strong> indicar cobrança acima do limite, mas depende do tipo de dívida e dos encargos incluídos. Peça o extrato detalhado e o CET por escrito e confira com o órgão de defesa do consumidor.
+                      </p>
+                    </div>
+                  )}
+
+                  {calcAba2.totalProposta > 0 && (
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-3 border-b border-slate-200">
+                        <div>
+                          <span className="text-[11px] font-medium text-slate-500">
+                            Total Real Pago no Fim
+                          </span>
+                          <p className="text-base sm:text-lg font-extrabold text-slate-900">
+                            {formatBRL(calcAba2.totalProposta)}
+                          </p>
+                        </div>
+                        {calcAba2.orig > 0 && (
+                          <div>
+                            <span className="text-[11px] font-medium text-slate-500">
+                              Você vai pagar
+                            </span>
+                            <p
+                              className={cn(
+                                'text-base sm:text-lg font-extrabold',
+                                calcAba2.multiplicador >= 2
+                                  ? 'text-rose-600'
+                                  : 'text-emerald-600'
+                              )}
+                            >
+                              {calcAba2.multiplicador.toFixed(1)}x a dívida
+                            </p>
+                          </div>
+                        )}
+                        {calcAba2.taxaMensalAprox > 0 && (
+                          <div>
+                            <span className="text-[11px] font-medium text-slate-500">
+                              Juros Embutidos (aprox.)
+                            </span>
+                            <p className="text-base sm:text-lg font-extrabold text-indigo-600">
+                              {calcAba2.taxaMensalAprox.toFixed(1)}% ao mês
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-3 text-xs text-slate-600 space-y-1">
+                        <p className="font-semibold text-slate-800">
+                          Checklist Blindado antes de fechar acordo:
+                        </p>
+                        <p>• Nunca pague boleto enviado por WhatsApp sem conferir no app oficial do credor.</p>
+                        <p>• Exija o Custo Efetivo Total (CET) por escrito e guarde o número de protocolo.</p>
+                        <p>• Após quitar, solicite a carta de quitação e acompanhe a baixa da restrição.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {data.activeTab === 'amortizar' && (
+            <div className="space-y-6 animate-fade-in">
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                      Módulo 7 • Reduzindo o Custo das Dívidas
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                      Simulador: Reduzir Prazo vs. Reduzir Prestação
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      Veja quanto você economiza em juros futuros ao abater o saldo devedor (simulação educativa Tabela Price).
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <TrendingDown className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Valor da Parcela Atual
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={data.finValorParcela}
+                        onChange={(e) => updateField('finValorParcela', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Parcelas Restantes
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="420"
+                      value={data.finParcelasRestantes}
+                      onChange={(e) =>
+                        updateField('finParcelasRestantes', e.target.value)
+                      }
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Juros do Contrato (% mês)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={data.finTaxaMensal}
+                      onChange={(e) => updateField('finTaxaMensal', e.target.value)}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-emerald-700 mb-1">
+                      Valor Extra para Abater
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={data.finValorExtra}
+                        onChange={(e) => updateField('finValorExtra', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-sm font-semibold rounded-xl border border-emerald-300 bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-500">Soma das parcelas futuras: </span>
+                    <strong className="text-slate-900">
+                      {formatBRL(calcAba3.totalSeguirPagando)}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Saldo devedor hoje (sem juros futuros): </span>
+                    <strong className="text-indigo-600">
+                      {formatBRL(calcAba3.saldoDevedor)}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Juros embutidos: </span>
+                    <strong className="text-amber-600">
+                      {formatBRL(calcAba3.jurosFuturosEmbutidos)}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 relative">
+                    <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500 text-white mb-2">
+                      Maior Economia de Juros
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Opção A: Amortizar Reduzindo o Prazo
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Você mantém a parcela em <strong>{formatBRL(calcAba3.pmt)}</strong>, mas elimina{' '}
+                      <strong>{calcAba3.mesesEliminados} meses</strong> da dívida (cai para {calcAba3.novoPrazo}x).
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-emerald-200/80 flex items-baseline justify-between">
+                      <span className="text-xs font-medium text-emerald-900">
+                        Economia nominal estimada:
+                      </span>
+                      <span className="text-xl font-extrabold text-emerald-600">
+                        {formatBRL(calcAba3.economiaPrazo)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl border border-slate-200 bg-white">
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 mb-2">
+                      Alívio no Orçamento Mensal
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Opção B: Amortizar Reduzindo a Prestação
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-1">
+                      O prazo segue em <strong>{calcAba3.n} meses</strong>, mas sua parcela cai para{' '}
+                      <strong>{formatBRL(calcAba3.novaParcela)}</strong> (alívio de {formatBRL(calcAba3.alivioMensal)}/mês).
+                    </p>
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+                      <span className="text-xs font-medium text-slate-600">
+                        Economia nominal estimada:
+                      </span>
+                      <span className="text-xl font-extrabold text-indigo-600">
+                        {formatBRL(calcAba3.economiaParcela)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200 flex items-start gap-2.5 text-xs text-amber-900">
+                  <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p>
+                    <strong>Regra de Ouro:</strong> Nunca use sua reserva de emergência para amortizar financiamento, nem adiante parcelas se você ainda tem dívida de cartão rotativo ou cheque especial em aberto.
+                  </p>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                      Modelo sugerido • CDC Art. 52, §2º & Res. CMN 3.516/2007
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                      Gerador de Solicitação ao Banco (Por Escrito)
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      Preencha os campos abaixo para montar um modelo de pedido do demonstrativo de liquidação antecipada. Por privacidade, o CPF não é pedido aqui: preencha-o na carta antes de enviar.
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                  <input
+                    type="text"
+                    placeholder="Seu Nome Completo"
+                    value={data.cartaNome}
+                    onChange={(e) => updateField('cartaNome', e.target.value)}
+                    className="px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nº do Contrato"
+                    value={data.cartaContrato}
+                    onChange={(e) => updateField('cartaContrato', e.target.value)}
+                    className="px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Data do Contrato (ex: 10/05/2024)"
+                    value={data.cartaDataContrato}
+                    onChange={(e) => updateField('cartaDataContrato', e.target.value)}
+                    className="px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Sua Cidade"
+                    value={data.cartaCidade}
+                    onChange={(e) => updateField('cartaCidade', e.target.value)}
+                    className="px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <select
+                    value={data.cartaTipo}
+                    onChange={(e) => updateField('cartaTipo', e.target.value)}
+                    className="px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="parcial">Liquidação Parcial ({formatBRL(data.finValorExtra || 0)})</option>
+                    <option value="total">Liquidação Total do Contrato</option>
+                  </select>
+                </div>
+
+                <div className="relative">
+                  <pre className="w-full p-4 rounded-xl bg-slate-900 text-slate-100 text-xs leading-relaxed whitespace-pre-wrap font-sans border border-slate-800">
+                    {textoCartaBanco}
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={handleCopyCarta}
+                    className={cn(
+                      'mt-3 w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white transition-all duration-200 active:scale-95',
+                      copiedCarta
+                        ? 'bg-emerald-600'
+                        : 'bg-indigo-600 hover:bg-indigo-700'
+                    )}
+                  >
+                    {copiedCarta ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Carta Copiada! Cole no chat/app do banco</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        <span>Copiar Requerimento Oficial</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {data.activeTab === 'plano7' && (
+            <div className="space-y-6 animate-fade-in">
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                      Módulo 5 • Primeira Proteção Contra Imprevistos
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                      Metas Progressivas da Sua Reserva
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      No começo, o hábito pesa mais do que o tamanho do depósito. Escolha sua meta atual:
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <PiggyBank className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {[100, 300, 500, 1000, 3000].map((meta) => (
+                    <button
+                      key={meta}
+                      type="button"
+                      onClick={() => updateField('reservaMetaEscolhida', meta)}
+                      className={cn(
+                        'px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all',
+                        data.reservaMetaEscolhida === meta
+                          ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      )}
+                    >
+                      Meta {formatBRL(meta)}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Quanto você já tem guardado na caixinha separada?
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-600">
+                        R$
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={data.reservaAtual}
+                        onChange={(e) => updateField('reservaAtual', e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-sm font-bold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 sm:pt-5">
+                    {[30, 50, 100].map((inc) => (
+                      <button
+                        key={inc}
+                        type="button"
+                        onClick={() => addReservaValor(inc)}
+                        className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-all active:scale-95"
+                      >
+                        + R$ {inc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-1.5">
+                    <span className="text-slate-700">
+                      Guardado: {formatBRL(reservaAtualNum)}
+                    </span>
+                    <span className="text-emerald-600">
+                      {reservaPct}% de {formatBRL(data.reservaMetaEscolhida)}
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                    <div
+                      className="h-full bg-emerald-500 transition-all duration-300 rounded-full"
+                      style={{ width: `${reservaPct}%` }}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                      Plano de Execução Imediata
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
+                      Checklist Final: Seus Próximos 7 Dias
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      "Se cumprir só metade, já está à frente de ontem. O objetivo é progresso, não perfeição."
+                    </p>
+                  </div>
+                  <div className="px-3.5 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-right shrink-0">
+                    <span className="block text-[11px] font-semibold text-indigo-600">
+                      Progresso Geral
+                    </span>
+                    <span className="text-lg font-extrabold text-indigo-900">
+                      {checklistPct}% ({checklistConcluidos}/7)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-5">
+                  <div
+                    className="h-full bg-indigo-600 transition-all duration-300 rounded-full"
+                    style={{ width: `${checklistPct}%` }}
+                  />
+                </div>
+
+                <div className="space-y-2.5">
+                  {CHECKLIST_ITEMS.map((item, idx) => {
+                    const checked = data.checklist7Dias[idx];
+                    return (
+                      <button
+                        key={item.dia}
+                        type="button"
+                        onClick={() => toggleChecklistItem(idx)}
+                        className={cn(
+                          'w-full flex items-start gap-3.5 p-3.5 rounded-xl border text-left transition-all duration-200',
+                          checked
+                            ? 'bg-emerald-50/50 border-emerald-200'
+                            : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-slate-50/60'
+                        )}
+                      >
+                        <div className="mt-0.5 shrink-0">
+                          {checked ? (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                          ) : (
+                            <Circle className="w-5 h-5 text-slate-300" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className={cn(
+                                'text-[10px] font-extrabold px-2 py-0.5 rounded-md',
+                                checked
+                                  ? 'bg-emerald-500 text-white'
+                                  : 'bg-indigo-100 text-indigo-700'
+                              )}
+                            >
+                              {item.dia}
+                            </span>
+                            <span
+                              className={cn(
+                                'text-xs sm:text-sm font-bold',
+                                checked
+                                  ? 'line-through text-slate-400'
+                                  : 'text-slate-900'
+                              )}
+                            >
+                              {item.titulo}
+                            </span>
+                          </div>
+                          <p
+                            className={cn(
+                              'text-xs mt-1 leading-relaxed',
+                              checked ? 'text-slate-400' : 'text-slate-600'
+                            )}
+                          >
+                            {item.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+          )}
+
+          <footer className="mt-6 pt-4 border-t border-slate-100 text-center text-[11px] text-slate-400">
+            Ferramenta educativa complementar ao guia <strong>O Manual Anti-Aperto</strong> • Os cálculos são simulações ilustrativas; confira sempre os demonstrativos oficiais da sua instituição financeira.
+          </footer>
+        </div>
+      );
+    }
+
+    const rootElement = document.getElementById('root');
+    const root = createRoot(rootElement);
+    root.render(<App />);
+  </script>
+</body>
+</html>
