@@ -148,18 +148,18 @@
       },
       {
         dia: 'DIA 4',
-        titulo: 'Checar Datas e Prescrição (5 anos)',
-        desc: 'Anote o vencimento original de cada dívida atrasada na Aba 2 antes de aceitar qualquer acordo.'
+        titulo: 'Checar Datas e Prazos',
+        desc: 'Anote o vencimento original de cada dívida atrasada e veja na Aba 2 se há alerta de prazo antes de aceitar qualquer acordo.'
       },
       {
         dia: 'DIA 5',
         titulo: 'Pedir Contrato, Extrato e CET',
-        desc: 'Exija o Custo Efetivo Total por escrito e audite propostas antes de fechar negócio.'
+        desc: 'Peça o Custo Efetivo Total por escrito e compare as propostas antes de fechar negócio.'
       },
       {
         dia: 'DIA 6',
-        titulo: 'Abrir Caixinha da 1ª Proteção',
-        desc: 'Se houve sobra no Raio-X, separe uma conta sem cartão e transfira sua primeira meta (ex: R$ 30 a R$ 100).'
+        titulo: 'Abrir Caixinha da 1ª Proteção (opcional)',
+        desc: 'Só se houver sobra no Raio-X: separe uma conta sem cartão e, se quiser, transfira sua primeira meta (ex: R$ 30 a R$ 100).'
       },
       {
         dia: 'DIA 7',
@@ -282,7 +282,7 @@
           taxaMensalAprox = r * 100;
         }
 
-        const prescrita = mesesAtraso >= 60;
+        const alertaPrazo = mesesAtraso >= 60;
         const fereTetoCartao =
           data.dividaTipo === 'cartao' && orig > 0 && totalProposta > orig * 2;
 
@@ -295,7 +295,7 @@
           multiplicador,
           jurosEmbutidos,
           taxaMensalAprox,
-          prescrita,
+          alertaPrazo,
           fereTetoCartao
         };
       }, [
@@ -586,7 +586,7 @@ ${nome}`;
                       Placar dos Juros (Últimos 3 Meses)
                     </h2>
                     <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                      Olhe seus extratos dos últimos 90 dias e digite quanto foi só para juros, multas e tarifas.
+                      Olhe seus extratos dos últimos 90 dias e digite quanto foi pago em juros, multas, tarifas e seguros.
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -679,7 +679,7 @@ ${nome}`;
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
                   <div className="flex items-center justify-between sm:block">
                     <span className="text-xs font-medium text-slate-500">
-                      Desperdício nos últimos 3 meses:
+                      Valores pagos em juros, multas, tarifas e seguros nos últimos 3 meses:
                     </span>
                     <p className="text-lg sm:text-xl font-extrabold text-slate-900">
                       {formatBRL(calcAba1.j3m)}
@@ -687,13 +687,17 @@ ${nome}`;
                   </div>
                   <div className="flex items-center justify-between sm:block sm:border-l sm:border-slate-200 sm:pl-4">
                     <span className="text-xs font-medium text-slate-500">
-                      Projeção perdida em 1 ano (x4):
+                      Projeção anual ilustrativa, se o padrão se repetir:
                     </span>
-                    <p className="text-lg sm:text-xl font-extrabold text-rose-600">
+                    <p className="text-lg sm:text-xl font-extrabold text-slate-900">
                       {formatBRL(calcAba1.j1ano)}
                     </p>
                   </div>
                 </div>
+
+                <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+                  A projeção é apenas uma conta matemática (valor dos 3 meses × 4) e não representa previsão de gastos futuros. Tarifas e seguros podem ser cobranças contratadas: este total só soma o que você informou e não classifica nenhum item como indevido.
+                </p>
               </section>
 
               <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
@@ -850,10 +854,10 @@ ${nome}`;
                         <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
                           <div className="flex items-center gap-2 font-bold text-sm mb-1">
                             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span>Munição Real Identificada!</span>
+                            <span>Potencial de ajuste no orçamento</span>
                           </div>
                           <p className="text-xs leading-relaxed text-emerald-800">
-                            Você tem <strong>{formatBRL(calcAba1.sobraFinal)}/mês</strong> de munição real. Use esse valor para atacar dívidas caras (Aba 2) ou alimentar sua 1ª Proteção (Aba 4).
+                            Pelos valores informados, sobram <strong>{formatBRL(calcAba1.sobraFinal)}/mês</strong> depois do essencial e do ralo/parcelas. É um potencial de ajuste, uma estimativa baseada no que você digitou: se ele se confirmar no seu dia a dia, você pode avaliar usá-lo para dívidas mais caras (Aba 2) ou para a 1ª Proteção (Aba 4).
                           </p>
                         </div>
                       )}
@@ -882,10 +886,10 @@ ${nome}`;
                       Módulos 3 e 4 • Negociação com Cabeça Fria
                     </span>
                     <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-0.5">
-                      Auditor de Propostas & Regra dos 5 Anos
+                      Auditor de Propostas e Alerta de Prazos
                     </h2>
                     <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                      Nunca aceite um acordo só porque "a parcela cabe no bolso". Teste a proposta antes de assinar.
+                      A parcela caber no bolso não basta: compare o total a pagar com o valor original antes de decidir.
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
@@ -943,7 +947,7 @@ ${nome}`;
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Há quantos meses venceu? (60 meses = 5 anos)
+                      Há quantos meses venceu? (60 meses = 5 anos; serve só como alerta)
                     </label>
                     <input
                       type="number"
@@ -993,27 +997,35 @@ ${nome}`;
                 </div>
 
                 <div className="mt-5 space-y-3">
-                  {calcAba2.prescrita && (
+                  {calcAba2.alertaPrazo && (
                     <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-950">
                       <div className="flex items-center gap-2 font-bold text-sm text-amber-800 mb-1">
                         <CalendarClock className="w-4 h-4 shrink-0" />
-                        <span>PONTO DE ATENÇÃO: PRAZO DA DÍVIDA (60+ MESES)</span>
+                        <span>ALERTA DE PRAZO (60+ MESES): CONFIRA A DOCUMENTAÇÃO</span>
                       </div>
                       <p className="text-xs leading-relaxed">
-                        Dívidas vencidas há mais de 5 anos <strong>podem</strong> estar prescritas (Código Civil, art. 206, §5º, I), e a negativação tem prazo máximo de 5 anos (Súmula 323 do STJ). Isso depende do tipo de dívida, da data do vencimento e de eventuais interrupções do prazo.{' '}
-                        <strong>Cuidado:</strong> assinar um novo acordo ou reconhecer a dívida pode reiniciar a contagem. Confirme com um advogado ou a Defensoria antes de assinar.
+                        Dívidas com mais de cinco anos merecem atenção, mas o tempo decorrido, sozinho, não permite concluir que a dívida prescreveu. O prazo depende do tipo de obrigação e de outros acontecimentos. Confira a documentação antes de tomar uma decisão.
+                      </p>
+                      <p className="text-xs leading-relaxed mt-2">
+                        <strong>São dois prazos diferentes:</strong> (1) a permanência da negativação nos cadastros, que em regra é de no máximo 5 anos contados do vencimento (CDC, art. 43, §1º; Súmula 323 do STJ); e (2) a prescrição da pretensão de cobrança (Código Civil), que depende do tipo de dívida e de fatos como a interrupção do prazo. Sair do cadastro não significa, por si só, que a dívida deixou de poder ser cobrada.
+                      </p>
+                      <p className="text-xs leading-relaxed mt-2">
+                        <strong>Cuidado:</strong> assinar um novo acordo ou reconhecer a dívida pode interromper e reiniciar a contagem do prazo de prescrição. Confirme com um advogado ou a Defensoria antes de assinar.
                       </p>
                     </div>
                   )}
 
                   {calcAba2.fereTetoCartao && (
-                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 text-rose-950">
-                      <div className="flex items-center gap-2 font-bold text-sm text-rose-800 mb-1">
+                    <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950">
+                      <div className="flex items-center gap-2 font-bold text-sm text-indigo-800 mb-1">
                         <CreditCard className="w-4 h-4 shrink-0" />
-                        <span>CONFIRA O TETO DE JUROS DO CARTÃO (LEI 14.690/2023)</span>
+                        <span>TETO DE JUROS DO CARTÃO (LEI 14.690/2023): CONFIRA SE SE APLICA</span>
                       </div>
                       <p className="text-xs leading-relaxed">
-                        A regra do teto de juros do cartão (Lei 14.690/2023) limita juros e encargos do rotativo e do parcelamento da fatura a <strong>100% do valor original da dívida</strong>, com exceções. O total desta proposta passa do dobro do valor informado, o que <strong>pode</strong> indicar cobrança acima do limite, mas depende do tipo de dívida e dos encargos incluídos. Peça o extrato detalhado e o CET por escrito e confira com o órgão de defesa do consumidor.
+                        Para operações abrangidas pela regra vigente desde 3 de janeiro de 2024, os juros e encargos financeiros do rotativo e do parcelamento do saldo da fatura não podem ultrapassar 100% do valor original da dívida. A regra não se aplica indistintamente a todas as compras parceladas ou a qualquer dívida de cartão. Confira o demonstrativo e as condições da operação.
+                      </p>
+                      <p className="text-xs leading-relaxed mt-2">
+                        Aqui, o total da proposta informada passa do dobro do valor original informado. Isso é só um sinal para pedir o extrato detalhado e o CET por escrito, não uma conclusão de que há cobrança irregular.
                       </p>
                     </div>
                   )}
@@ -1023,7 +1035,7 @@ ${nome}`;
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-3 border-b border-slate-200">
                         <div>
                           <span className="text-[11px] font-medium text-slate-500">
-                            Total Real Pago no Fim
+                            Total a pagar na proposta
                           </span>
                           <p className="text-base sm:text-lg font-extrabold text-slate-900">
                             {formatBRL(calcAba2.totalProposta)}
@@ -1032,24 +1044,19 @@ ${nome}`;
                         {calcAba2.orig > 0 && (
                           <div>
                             <span className="text-[11px] font-medium text-slate-500">
-                              Você vai pagar
+                              Total ÷ valor original
                             </span>
                             <p
-                              className={cn(
-                                'text-base sm:text-lg font-extrabold',
-                                calcAba2.multiplicador >= 2
-                                  ? 'text-rose-600'
-                                  : 'text-emerald-600'
-                              )}
+                              className="text-base sm:text-lg font-extrabold text-slate-900"
                             >
-                              {calcAba2.multiplicador.toFixed(1)}x a dívida
+                              {calcAba2.multiplicador.toFixed(1).replace('.', ',')}x o valor original
                             </p>
                           </div>
                         )}
                         {calcAba2.taxaMensalAprox > 0 && (
                           <div>
                             <span className="text-[11px] font-medium text-slate-500">
-                              Juros Embutidos (aprox.)
+                              Taxa mensal implícita (aprox.)
                             </span>
                             <p className="text-base sm:text-lg font-extrabold text-indigo-600">
                               {calcAba2.taxaMensalAprox.toFixed(1)}% ao mês
@@ -1059,8 +1066,11 @@ ${nome}`;
                       </div>
 
                       <div className="mt-3 text-xs text-slate-600 space-y-1">
+                        <p className="text-[11px] text-slate-500 pb-1">
+                          Estimativa feita só com os valores informados. A comparação numérica não indica, por si só, que a proposta é abusiva ou ilegal: isso depende do contrato, dos encargos e da documentação.
+                        </p>
                         <p className="font-semibold text-slate-800">
-                          Checklist Blindado antes de fechar acordo:
+                          Checklist de cuidados antes de fechar acordo:
                         </p>
                         <p>• Nunca pague boleto enviado por WhatsApp sem conferir no app oficial do credor.</p>
                         <p>• Exija o Custo Efetivo Total (CET) por escrito e guarde o número de protocolo.</p>
@@ -1085,7 +1095,7 @@ ${nome}`;
                       Simulador: Reduzir Prazo vs. Reduzir Prestação
                     </h2>
                     <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                      Veja quanto você economiza em juros futuros ao abater o saldo devedor (simulação educativa Tabela Price).
+                      Compare duas formas de usar um valor extra para abater o saldo devedor. É uma simulação educativa que usa a Tabela Price como hipótese de cálculo.
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -1171,13 +1181,13 @@ ${nome}`;
                     </strong>
                   </div>
                   <div>
-                    <span className="text-slate-500">Saldo devedor hoje (sem juros futuros): </span>
+                    <span className="text-slate-500">Saldo devedor estimado hoje (sem juros futuros): </span>
                     <strong className="text-indigo-600">
                       {formatBRL(calcAba3.saldoDevedor)}
                     </strong>
                   </div>
                   <div>
-                    <span className="text-slate-500">Juros embutidos: </span>
+                    <span className="text-slate-500">Juros embutidos estimados: </span>
                     <strong className="text-amber-600">
                       {formatBRL(calcAba3.jurosFuturosEmbutidos)}
                     </strong>
@@ -1187,7 +1197,7 @@ ${nome}`;
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50/30 relative">
                     <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500 text-white mb-2">
-                      Maior Economia de Juros
+                      Tende a reduzir mais o total pago
                     </span>
                     <h3 className="text-sm font-bold text-slate-900">
                       Opção A: Amortizar Reduzindo o Prazo
@@ -1198,7 +1208,7 @@ ${nome}`;
                     </p>
                     <div className="mt-3 pt-3 border-t border-emerald-200/80 flex items-baseline justify-between">
                       <span className="text-xs font-medium text-emerald-900">
-                        Economia nominal estimada:
+                        Diferença estimada no total pago (nominal):
                       </span>
                       <span className="text-xl font-extrabold text-emerald-600">
                         {formatBRL(calcAba3.economiaPrazo)}
@@ -1219,7 +1229,7 @@ ${nome}`;
                     </p>
                     <div className="mt-3 pt-3 border-t border-slate-100 flex items-baseline justify-between">
                       <span className="text-xs font-medium text-slate-600">
-                        Economia nominal estimada:
+                        Diferença estimada no total pago (nominal):
                       </span>
                       <span className="text-xl font-extrabold text-indigo-600">
                         {formatBRL(calcAba3.economiaParcela)}
@@ -1228,10 +1238,14 @@ ${nome}`;
                   </div>
                 </div>
 
+                <p className="mt-4 text-[11px] leading-relaxed text-slate-500">
+                  Como ler estes valores: a simulação usa a Tabela Price (parcelas fixas e juros compostos mensais) como hipótese de cálculo, quando aplicável ao seu contrato. A "diferença estimada no total pago" compara o que você pagaria seguindo o contrato com o que pagaria após o abatimento, em valores nominais (sem inflação e sem custo de oportunidade). Os resultados reais dependem do contrato, da taxa, do saldo atualizado e das condições da instituição, e a simulação não garante economia.
+                </p>
+
                 <div className="mt-4 p-3 rounded-xl bg-amber-50/80 border border-amber-200 flex items-start gap-2.5 text-xs text-amber-900">
                   <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Regra de Ouro:</strong> Nunca use sua reserva de emergência para amortizar financiamento, nem adiante parcelas se você ainda tem dívida de cartão rotativo ou cheque especial em aberto.
+                    <strong>Cuidado antes de abater:</strong> em geral, evite usar sua reserva de emergência para amortizar financiamento e avalie, antes de adiantar parcelas, se ainda há dívida mais cara em aberto (como cartão rotativo ou cheque especial). A decisão depende da sua situação.
                   </p>
                 </div>
               </section>
@@ -1246,7 +1260,7 @@ ${nome}`;
                       Gerador de Solicitação ao Banco (Por Escrito)
                     </h2>
                     <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                      Preencha os campos abaixo para montar um modelo de pedido do demonstrativo de liquidação antecipada. Por privacidade, o CPF não é pedido aqui: preencha-o na carta antes de enviar.
+                      Preencha os campos abaixo para montar um modelo de pedido do demonstrativo de liquidação antecipada. Por privacidade, a ferramenta não solicita o CPF: preencha-o você mesmo, apenas na versão final que decidir enviar.
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
@@ -1310,12 +1324,12 @@ ${nome}`;
                     {copiedCarta ? (
                       <>
                         <Check className="w-4 h-4" />
-                        <span>Carta Copiada! Cole no chat/app do banco</span>
+                        <span>Solicitação copiada! Revise e preencha o CPF antes de enviar</span>
                       </>
                     ) : (
                       <>
                         <Copy className="w-4 h-4" />
-                        <span>Copiar Requerimento Oficial</span>
+                        <span>Copiar solicitação ao banco</span>
                       </>
                     )}
                   </button>
@@ -1336,13 +1350,19 @@ ${nome}`;
                       Metas Progressivas da Sua Reserva
                     </h2>
                     <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                      No começo, o hábito pesa mais do que o tamanho do depósito. Escolha sua meta atual:
+                      As metas são progressivas e opcionais. No começo, o hábito pesa mais do que o tamanho do depósito; escolha só se fizer sentido para o seu orçamento:
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <PiggyBank className="w-5 h-5" />
                   </div>
                 </div>
+
+                {calcAba1.status === 'critico' && (
+                  <div className="mb-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs leading-relaxed text-amber-900">
+                    Pelos valores informados na Aba 1, sua renda não cobre as despesas essenciais. Nesse caso, estabilizar o orçamento vem antes de guardar dinheiro; as metas abaixo podem esperar.
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-2 mb-4">
                   {[100, 300, 500, 1000, 3000].map((meta) => (
@@ -1507,7 +1527,7 @@ ${nome}`;
           )}
 
           <footer className="mt-6 pt-4 border-t border-slate-100 text-center text-[11px] text-slate-400">
-            Ferramenta educativa complementar ao guia <strong>O Manual Anti-Aperto</strong> • Os cálculos são simulações ilustrativas; confira sempre os demonstrativos oficiais da sua instituição financeira.
+            Ferramenta educativa complementar ao guia <strong>O Manual Anti-Aperto</strong> • Os cálculos são simulações ilustrativas; confira sempre os demonstrativos oficiais da sua instituição financeira. Não substituem orientação jurídica ou financeira individual.
           </footer>
         </div>
       );
